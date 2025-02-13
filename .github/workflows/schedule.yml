@@ -1,0 +1,37 @@
+name: YouTube Live Scraper
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'  # 每 2 小時執行一次
+  workflow_dispatch:  # 可手動執行
+  push:
+    branches:
+      - main
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 下載 Repo
+        uses: actions/checkout@v3
+
+      - name: 設置 Python 環境
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: 安裝依賴套件
+        run: pip install google-api-python-client
+
+      - name: 執行抓取腳本
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: python youtube_live_scraper.py
+
+      - name: 上傳更新結果
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add youtube_live_streams.txt
+          git commit -m "更新直播網址 `date`" || echo "沒有變更"
+          git push
