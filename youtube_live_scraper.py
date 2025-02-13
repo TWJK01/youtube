@@ -5,7 +5,7 @@ from googleapiclient.discovery import build
 # ==========================
 # 設定區
 # ==========================
-API_KEY = os.getenv('YOUTUBE_API_KEY')  # 讀取 GitHub Secrets 的 API 金鑰
+API_KEY = os.getenv('AIzaSyCPpjo6Gd3Mwf9xFUHB2V1ZQJVia74-tE8')  # 讀取 GitHub Secrets 的 API 金鑰
 OUTPUT_FILENAME = "youtube_live_streams.txt"
 
 categories = {
