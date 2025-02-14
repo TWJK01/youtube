@@ -1,0 +1,36 @@
+name: Update YouTube Live Streams
+
+on:
+  schedule:
+    - cron: "0 */2 * * *"  # 每 2 小時執行一次
+  workflow_dispatch:  # 可手動觸發
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Python environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install google-api-python-client
+
+      - name: Run YouTube Live Scraper
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: python youtube_live_scraper.py
+
+      - name: Commit updated live_streams.txt
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add live_streams.txt
+          git commit -m "Update YouTube live streams [skip ci]" || echo "No changes to commit"
+          git push
