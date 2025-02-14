@@ -33,9 +33,11 @@ jobs:
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
+          # 設定遠端 URL 使用 PAT_TOKEN 確保有寫入權限
           git remote set-url origin https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git
-          # 拉取最新遠端更新，並以 rebase 方式整合
+          # 先拉取最新遠端更新，並使用 rebase 整合本地更改
           git pull --rebase origin main
+          # 若有更新則加入、提交
           git add live_streams.txt
           git commit -m "Update YouTube live streams [skip ci]" || echo "No changes to commit"
           git push
