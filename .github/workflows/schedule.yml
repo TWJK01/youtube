@@ -27,10 +27,16 @@ jobs:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: python youtube_live_scraper.py
 
-      - name: Commit updated live_streams.txt
+      - name: Commit and Push updates
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}  # 使用具有寫入權限的 Personal Access Token
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
+          # 使用 PAT 更新遠端 URL
+          git remote set-url origin https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git
+          # 拉取遠端最新變更，並以 rebase 方式整合
+          git pull --rebase origin main
           git add live_streams.txt
           git commit -m "Update YouTube live streams [skip ci]" || echo "No changes to commit"
           git push
