@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Pull latest changes
+        run: git pull --rebase origin main
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -41,5 +44,3 @@ jobs:
           git commit -m "Update YouTube live streams [skip ci]" || echo "No changes to commit"
           git pull --rebase origin main
 
-- name: Pull latest changes
-  run: git pull --rebase origin main
