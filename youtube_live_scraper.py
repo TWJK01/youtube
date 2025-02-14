@@ -7,11 +7,7 @@ API_KEY = os.getenv('YOUTUBE_API_KEY')  # ✅ 讀取 GitHub Secrets
 if not API_KEY:
     raise ValueError("❌ 錯誤：未找到 YOUTUBE_API_KEY，請確認 GitHub Secrets 設置")
 
-git add .github/workflows/schedule.yml
-git commit -m "修正 API Key 讀取方式"
-git push origin main
-# 🔹 建立 YouTube API 服務
-youtube = build('youtube', 'v3', developerKey=API_KEY)
+
 
 # 🔹 頻道分類
 CHANNELS = {
