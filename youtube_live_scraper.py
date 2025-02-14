@@ -3,7 +3,7 @@ import json
 from googleapiclient.discovery import build
 
 # 🔹 設定 YouTube Data API Key（從 GitHub Secrets 或環境變數讀取）
-API_KEY = os.getenv('AIzaSyCPpjo6Gd3Mwf9xFUHB2V1ZQJVia74-tE8')
+API_KEY = os.getenv('secrets.YOUTUBE_API_KEY')
 
 # 🔹 建立 YouTube API 服務
 youtube = build('youtube', 'v3', developerKey=API_KEY)
