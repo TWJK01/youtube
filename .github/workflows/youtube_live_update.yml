@@ -22,8 +22,9 @@ jobs:
 
       - name: 執行抓取腳本
         env:
-          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
-        run: python youtube_live_scraper.py
+         git add .github/workflows/schedule.yml
+         git commit -m "修正 API Key 讀取方式"
+         git push origin main
 
       - name: 提交更新
         run: |
