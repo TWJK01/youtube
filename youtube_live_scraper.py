@@ -14,7 +14,7 @@ youtube = build('youtube', 'v3', developerKey=API_KEY)
 # ※ 請依需求修改，以下範例使用你提供的三個網址
 categories = {
     "台灣": [
-        "https://www.youtube.com/@中天電視CtiTv",
+        "https://www.youtube.com/@%E4%B8%AD%E5%A4%A9%E6%96%B0%E8%81%9ECtiNews/streams",
         "https://www.youtube.com/@newsebc"
     ],
     "娛樂": [
