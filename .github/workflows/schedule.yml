@@ -43,3 +43,5 @@ jobs:
 
 
 
+    -  name: Pull latest changes
+       run: git pull --rebase origin main
