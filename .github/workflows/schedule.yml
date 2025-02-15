@@ -43,4 +43,17 @@ jobs:
           git push
 
 
-
+- name: Commit and Push updates
+  env:
+    PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+  run: |
+    git config --global user.name "GitHub Actions"
+    git config --global user.email "actions@github.com"
+    git remote set-url origin https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git
+    # 拉取远程更改并尝试自动合并
+    git pull origin main --rebase
+    # 添加并提交更改
+    git add youtube_live_streams.txt
+    git commit -m "Update YouTube live streams [skip ci]" || echo "No changes to commit"
+    # 推送更改
+    git push origin main
