@@ -1,75 +1,69 @@
 import os
 import requests
+import json
 
-# 从环境变量中获取 API 密钥
-API_KEY = os.getenv('YOUTUBE_API_KEY')
-if not API_KEY:
-    raise ValueError("未找到 YOUTUBE_API_KEY，请设置环境变量。")
+# 替换为你的 YouTube API Key
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")  
 
-# 预定义的频道 URL 和分类
-channels = {
-    "台湾": [
-        "https://www.youtube.com/@中天电视CtiTv",
-        "https://www.youtube.com/@newsebc"
-    ],
-    "追剧": [
-        "https://www.youtube.com/@gtv-drama"
-    ],
-    "娱乐": [
-        # 添加其他娱乐频道 URL
-    ],
-    "国外": [
-        # 添加其他国外频道 URL
-    ]
+# 频道 ID 列表（可手动查询，也可用 API 获取）
+CHANNELS = {
+    "gtv-drama": "UCz5CQdzYG0i3SddABZuc8pg",
+    "cti-tv": "UCJrOtniJ0-NWz37R30urifQ",
+    "newsebc": "UCaM49wLkBQwQYzqg1PzpyAA"
 }
 
-# 获取频道 ID
-def get_channel_id(channel_url):
-    username = channel_url.split('@')[-1]
-    search_url = f"https://www.googleapis.com/youtube/v3/search?part=id&q={username}&type=channel&key={API_KEY}"
-    response = requests.get(search_url).json()
-    items = response.get('items')
-    if items:
-        return items[0]['id']['channelId']
-    return None
+# 直播分类
+CATEGORIES = {
+    "台灣": ["gtv-drama", "cti-tv", "newsebc"],
+    "娛樂": [],
+    "追劇": ["gtv-drama"],
+    "國外": []
+}
 
-# 获取直播视频
-def get_live_videos(channel_id):
-    search_url = f"https://www.googleapis.com/youtube/v3/search?part=snippet&channelId={channel_id}&eventType=live&type=video&key={API_KEY}"
-    response = requests.get(search_url).json()
-    items = response.get('items')
-    live_videos = []
-    if items:
-        for item in items:
-            title = item['snippet']['title']
-            video_id = item['id']['videoId']
-            video_url = f"https://www.youtube.com/watch?v={video_id}"
-            live_videos.append(f"{title}, {video_url}")
-    return live_videos
+OUTPUT_FILE = "youtube_live_streams.txt"
 
-# 主函数
-def main():
-    results = {}
-    for category, urls in channels.items():
-        live_streams = []
-        for url in urls:
-            channel_id = get_channel_id(url)
-            if channel_id:
-                live_videos = get_live_videos(channel_id)
-                live_streams.extend(live_videos)
-        if live_streams:
-            results[category] = live_streams
 
-    # 将结果写入桌面上的文本文件
-    desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
-    output_file = os.path.join(desktop_path, "youtube_live_streams.txt")
-    with open(output_file, "w", encoding="utf-8") as f:
-        for category, streams in results.items():
-            f.write(f"\n")
-            for stream in streams:
-                f.write(f"{stream}\n")
-            f.write("\n")
-    print(f"直播链接已保存到 {output_file}")
+def get_live_streams(channel_id):
+    """查询频道是否有正在直播的视频"""
+    url = f"https://www.googleapis.com/youtube/v3/search?part=snippet&channelId={channel_id}&eventType=live&type=video&key={YOUTUBE_API_KEY}"
+    response = requests.get(url)
+    data = response.json()
+
+    if "items" not in data:
+        return []
+
+    live_streams = []
+    for item in data["items"]:
+        video_id = item["id"]["videoId"]
+        title = item["snippet"]["title"]
+        live_streams.append(f"{title}: https://www.youtube.com/watch?v={video_id}")
+
+    return live_streams
+
+
+def classify_and_save():
+    """获取所有频道的直播信息，并分类存储"""
+    categorized_streams = {key: [] for key in CATEGORIES}
+
+    for name, channel_id in CHANNELS.items():
+        streams = get_live_streams(channel_id)
+        if streams:
+            for category, channels in CATEGORIES.items():
+                if name in channels:
+                    categorized_streams[category].extend(streams)
+
+    # 过滤掉没有直播的分类
+    categorized_streams = {k: v for k, v in categorized_streams.items() if v}
+
+    # 写入文件
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+        for category, streams in categorized_streams.items():
+            f.write(f"【{category}】\n")
+            f.write("\n".join(streams))
+            f.write("\n\n")
+
+    print(f"✅ 直播数据已更新：{OUTPUT_FILE}")
+
 
 if __name__ == "__main__":
-    main()
+    classify_and_save()
