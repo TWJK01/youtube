@@ -19,7 +19,7 @@ channels = {
         "https://www.youtube.com/@中天電視CtiTv/streams"
     ],
     "追劇": [
-        "https://www.youtube.com/@gtv-drama"
+        "https://www.youtube.com/@gtv-drama/streams"
     ],
     "娛樂": [
         # 如有其他娛樂頻道網址，請加入
