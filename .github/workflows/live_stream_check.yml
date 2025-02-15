@@ -2,18 +2,18 @@ name: YouTube Live Stream Check
 
 on:
   schedule:
-    - cron: '0 */2 * * *'  # Every two hours
-  workflow_dispatch:  # Allow manual triggering
+    - cron: '0 */2 * * *'  # 每兩小時執行一次
+  workflow_dispatch:  # 允許手動觸發
 
 jobs:
   check_live_streams:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.8'
 
@@ -22,22 +22,15 @@ jobs:
           pip install --upgrade pip
           pip install google-api-python-client
 
-      - name: Run the Python script
+      - name: Run live stream monitor
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: |
           python live_stream_monitor.py
 
-      - name: Upload live stream output (using GitHub API)
-        run: |
-          curl -X POST \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github+json" \
-            -H "Content-Type: application/json" \
-            -d @upload_payload.json \
-            https://api.github.com/repos/${{ github.repository }}/actions/artifacts
-
-      - name: Upload live_streams.txt to GitHub as Artifact
-        run: |
-          curl -X POST \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -F "file=@live_streams.txt" \
-            "https://uploads.github.com/repos/${{ github.repository }}/actions/artifacts"
+      # 將 live_streams.txt 作為 artifact 上傳
+      - name: Upload live_streams.txt artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: live_streams
+          path: live_streams.txt
