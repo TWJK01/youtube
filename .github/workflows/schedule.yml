@@ -28,18 +28,16 @@ jobs:
 
       - name: Commit and Push updates
         env:
-        PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}  # 此處使用 PAT_TOKEN（請先在 Secrets 中新增）
         run: |
-    git config --global user.name "GitHub Actions"
-    git config --global user.email "actions@github.com"
-    git remote set-url origin https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git
-    # 拉取远程更改并尝试自动合并
-    git pull origin main --rebase
-    # 添加并提交更改
-    git add youtube_live_streams.txt
-    git commit -m "Update YouTube live streams [skip ci]" || echo "No changes to commit"
-    # 推送更改
-    git push origin main
-
-
-
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git remote set-url origin https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git
+          # 如果 live_streams.txt 存在則提交
+          if [ -f "youtube_live_streams.txt" ]; then
+            git add youtube_live_streams.txt
+            git commit -m "Update YouTube live streams [skip ci]" || echo "No changes to commit"
+          else
+            echo "youtube_live_streams.txt 不存在，跳過 commit"
+          fi
+          git push
