@@ -1,17 +1,19 @@
+import time
 import os
-import requests
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+from bs4 import BeautifulSoup
 
-# 获取 YouTube API Key
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
-
-# 频道信息（手动获取 Channel ID）
-CHANNELS = {
-    "gtv-drama": "UCz5CQdzYG0i3SddABZuc8pg",
-    "cti-tv": "UCJrOtniJ0-NWz37R30urifQ",
-    "newsebc": "UCaM49wLkBQwQYzqg1PzpyAA"
+# 需要爬取的 YouTube 頻道網址
+CHANNEL_URLS = {
+    "gtv-drama": "https://www.youtube.com/@gtv-drama",
+    "cti-tv": "https://www.youtube.com/@%E4%B8%AD%E5%A4%A9%E9%9B%BB%E8%A6%96CtiTv",
+    "newsebc": "https://www.youtube.com/@newsebc"
 }
 
-# 分类
+# 分類標籤
 CATEGORIES = {
     "台灣": ["gtv-drama", "cti-tv", "newsebc"],
     "娛樂": [],
@@ -21,47 +23,64 @@ CATEGORIES = {
 
 OUTPUT_FILE = "youtube_live_streams.txt"
 
+# 設置 Selenium 選項（無頭模式）
+chrome_options = Options()
+chrome_options.add_argument("--headless")
+chrome_options.add_argument("--disable-gpu")
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--window-size=1920x1080")
 
-def get_live_streams(channel_id):
-    """获取指定频道的直播链接"""
-    url = f"https://www.googleapis.com/youtube/v3/search?part=snippet&channelId={channel_id}&eventType=live&type=video&key={YOUTUBE_API_KEY}"
-    response = requests.get(url)
-    data = response.json()
 
-    if "items" not in data:
-        return []
+def get_live_streams(channel_url):
+    """使用 Selenium 爬取頻道的直播影片"""
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=chrome_options)
 
-    live_streams = []
-    for item in data["items"]:
-        video_id = item["id"]["videoId"]
-        title = item["snippet"]["title"]
-        live_streams.append(f"{title}: https://www.youtube.com/watch?v={video_id}")
+    try:
+        driver.get(channel_url + "/live")
+        time.sleep(3)  # 等待頁面加載
 
-    return live_streams
+        # 取得頁面內容
+        soup = BeautifulSoup(driver.page_source, "html.parser")
+
+        # 查找直播影片的連結
+        live_streams = []
+        for link in soup.find_all("a", href=True):
+            href = link["href"]
+            if "watch?v=" in href:
+                title = link.get_text(strip=True)
+                full_url = f"https://www.youtube.com{href}"
+                if full_url not in live_streams:
+                    live_streams.append(f"{title}: {full_url}")
+
+        return live_streams
+
+    finally:
+        driver.quit()
 
 
 def classify_and_save():
-    """获取所有频道的直播信息，并分类存储"""
+    """分類並存儲 YouTube 直播連結"""
     categorized_streams = {key: [] for key in CATEGORIES}
 
-    for name, channel_id in CHANNELS.items():
-        streams = get_live_streams(channel_id)
+    for name, url in CHANNEL_URLS.items():
+        streams = get_live_streams(url)
         if streams:
             for category, channels in CATEGORIES.items():
                 if name in channels:
                     categorized_streams[category].extend(streams)
 
-    # 过滤掉没有直播的分类
+    # 只保留有直播的分類
     categorized_streams = {k: v for k, v in categorized_streams.items() if v}
 
-    # 写入文件
+    # 寫入文字檔
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         for category, streams in categorized_streams.items():
             f.write(f"【{category}】\n")
             f.write("\n".join(streams))
             f.write("\n\n")
 
-    print(f"✅ 直播数据已更新：{OUTPUT_FILE}")
+    print(f"✅ 直播數據已更新：{OUTPUT_FILE}")
 
 
 if __name__ == "__main__":
