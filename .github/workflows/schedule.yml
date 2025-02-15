@@ -27,21 +27,23 @@ jobs:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: python youtube_live_scraper.py
 
-      - name: Clean working directory and Pull updates
+      - name: Commit and Push updates
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          # 使用 PAT_TOKEN 更新遠端 URL
           git remote set-url origin https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git
-          # 強制重置工作目錄，捨棄所有未提交變更
           git reset --hard HEAD
-          # 清除所有未追蹤的檔案，包括忽略檔（-x 表示包括 .gitignore 中忽略的檔案）
           git clean -fdx
-          # 拉取最新更新並以 rebase 方式整合
           git pull --rebase origin main
-          git add live_streams.txt
-          git commit -m "Update YouTube live streams [skip ci]" || echo "No changes to commit"
+          # 檢查 live_streams.txt 是否存在，如果存在再加入
+          if [ -f live_streams.txt ]; then
+            git add live_streams.txt
+            git commit -m "Update YouTube live streams [skip ci]" || echo "No changes to commit"
+          else
+            echo "live_streams.txt 不存在，跳過 commit"
+          fi
           git push
+
 
