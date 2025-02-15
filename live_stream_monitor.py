@@ -1,7 +1,7 @@
 import os
 from googleapiclient.discovery import build
 
-# 從環境變數中取得 API 金鑰（建議在 GitHub Actions 中設置）
+# 從環境變數中取得 API 金鑰（請在 GitHub Secrets 中設定 YOUTUBE_API_KEY）
 api_key = os.getenv('YOUTUBE_API_KEY')
 if not api_key:
     raise Exception("請設定 YOUTUBE_API_KEY 環境變數。")
@@ -9,18 +9,18 @@ if not api_key:
 # 建立 YouTube API 客戶端
 youtube = build('youtube', 'v3', developerKey=api_key)
 
-# 頻道資訊設定，包含名稱、頻道網址（使用 handle 格式），以及您自訂的分類
-# 請依需求自行調整分類文字 (這裡範例中將分類內容寫成 "台灣,追劇"、"台灣,娛樂"，您也可以根據需要設定 [台灣, #genre#]、[娛樂, #genre#]、[追劇, #genre#]、[國外, #genre#])
+# 頻道資訊設定：包含名稱、頻道網址（以 handle 格式）以及您自訂的分類
+# 可根據需求自行設定分類，這裡範例用：台灣, #genre#、娛樂, #genre#、追劇, #genre#、國外, #genre#
 channels = [
-    {"name": "GTV Drama", "url": "https://www.youtube.com/@gtv-drama", "category": "[台灣,追劇]"},
-    {"name": "中天電視CtiTv", "url": "https://www.youtube.com/@%E4%B8%AD%E5%A4%A9%E9%9B%BB%E8%A6%96CtiTv", "category": "[台灣,娛樂]"},
-    {"name": "newsebc", "url": "https://www.youtube.com/@newsebc", "category": "[台灣,娛樂]"}
+    {"name": "GTV Drama", "url": "https://www.youtube.com/@gtv-drama", "category": "台灣,追劇"},
+    {"name": "中天電視CtiTv", "url": "https://www.youtube.com/@%E4%B8%AD%E5%A4%A9%E9%9B%BB%E8%A6%96CtiTv", "category": "台灣,娛樂"},
+    {"name": "newsebc", "url": "https://www.youtube.com/@newsebc", "category": "台灣,娛樂"}
 ]
 
 def get_channel_id_from_url(url):
     """
-    根據頻道網址（格式為 https://www.youtube.com/@xxx）取得頻道ID
-    透過搜尋 handle (xxx) 得到頻道 ID
+    根據頻道網址（格式如 https://www.youtube.com/@xxx）取得頻道 ID
+    由於 YouTube API 沒有直接用 handle 查詢頻道 ID，因此用搜尋方式取得
     """
     handle = url.rstrip('/').split('/')[-1]
     try:
@@ -58,12 +58,13 @@ def is_live(channel_id):
 
 def update_live_streams():
     """
-    檢查所有頻道是否有正在直播，依分類整理輸出成文字檔
-    輸出格式:
-      分類區塊 (例如 [台灣,追劇])
-      每列一個項目，格式為「名稱,網址」
+    檢查所有頻道是否有正在直播，依分類整理，輸出成文字檔。
+    輸出格式：
+      每個分類區塊先顯示分類名稱（例如：台灣,追劇）
+      下面列出符合條件的直播頻道，每行格式：名稱,網址
+      若無直播則不加入
     """
-    results = {}  # 用分類作 key 儲存直播中的頻道資料
+    results = {}
     for channel in channels:
         channel_id = get_channel_id_from_url(channel["url"])
         if not channel_id:
@@ -77,11 +78,11 @@ def update_live_streams():
     
     # 組合文字檔內容
     lines = []
-    for cat, entries in results.items():
-        lines.append(cat)  # 輸出分類名稱
-        lines.extend(entries)
-        lines.append("")  # 空行分隔各分類
-    
+    for cat, items in results.items():
+        lines.append(cat)
+        lines.extend(items)
+        lines.append("")  # 空行區隔各分類
+
     file_content = "\n".join(lines)
     with open("live_streams.txt", "w", encoding="utf-8") as f:
         f.write(file_content)
