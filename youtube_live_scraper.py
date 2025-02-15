@@ -1,18 +1,17 @@
 import os
 import requests
-import json
 
-# 替换为你的 YouTube API Key
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")  
+# 获取 YouTube API Key
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 
-# 频道 ID 列表（可手动查询，也可用 API 获取）
+# 频道信息（手动获取 Channel ID）
 CHANNELS = {
     "gtv-drama": "UCz5CQdzYG0i3SddABZuc8pg",
     "cti-tv": "UCJrOtniJ0-NWz37R30urifQ",
     "newsebc": "UCaM49wLkBQwQYzqg1PzpyAA"
 }
 
-# 直播分类
+# 分类
 CATEGORIES = {
     "台灣": ["gtv-drama", "cti-tv", "newsebc"],
     "娛樂": [],
@@ -24,7 +23,7 @@ OUTPUT_FILE = "youtube_live_streams.txt"
 
 
 def get_live_streams(channel_id):
-    """查询频道是否有正在直播的视频"""
+    """获取指定频道的直播链接"""
     url = f"https://www.googleapis.com/youtube/v3/search?part=snippet&channelId={channel_id}&eventType=live&type=video&key={YOUTUBE_API_KEY}"
     response = requests.get(url)
     data = response.json()
