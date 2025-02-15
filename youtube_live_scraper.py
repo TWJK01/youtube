@@ -15,7 +15,8 @@ youtube = build('youtube', 'v3', developerKey=API_KEY)
 channels = {
     "台灣": [
         "https://www.youtube.com/@中天電視CtiTv",
-        "https://www.youtube.com/@newsebc"
+        "https://www.youtube.com/@newsebc",
+        "https://www.youtube.com/@中天電視CtiTv/streams"
     ],
     "追劇": [
         "https://www.youtube.com/@gtv-drama"
