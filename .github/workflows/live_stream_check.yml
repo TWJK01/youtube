@@ -3,13 +3,13 @@ name: YouTube Live Stream Check
 on:
   schedule:
     - cron: '0 */2 * * *'  # 每兩小時執行一次
-  workflow_dispatch:  # 允許手動觸發
+  workflow_dispatch:       # 允許手動觸發
 
 jobs:
   check_live_streams:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
       - name: Set up Python
@@ -17,12 +17,12 @@ jobs:
         with:
           python-version: '3.8'
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: |
           pip install --upgrade pip
           pip install google-api-python-client
 
-      - name: Run live stream monitor
+      - name: Run Live Stream Monitor
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: |
