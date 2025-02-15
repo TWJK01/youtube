@@ -2,42 +2,36 @@ name: Update YouTube Live Streams
 
 on:
   schedule:
-    - cron: "0 */2 * * *"  # 每 2 小時執行一次
-  workflow_dispatch:  # 可手動觸發
+    - cron: "0 */2 * * *"  # 每两小时执行一次
+  workflow_dispatch:  # 手动触发
 
 jobs:
   update:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: 检出仓库
         uses: actions/checkout@v3
 
-      - name: Setup Python
+      - name: 设置 Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.x'
 
-      - name: Install dependencies
-        run: pip install google-api-python-client
+      - name: 安装依赖
+        run: pip install requests
 
-      - name: Run YouTube Live Scraper
+      - name: 运行抓取脚本
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: python youtube_live_scraper.py
 
-      - name: Commit and Push updates
+      - name: 提交并推送更新
         env:
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}  # 此處使用 PAT_TOKEN（請先在 Secrets 中新增）
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          git remote set-url origin https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git
-          # 如果 live_streams.txt 存在則提交
-          if [ -f "youtube_live_streams.txt" ]; then
-            git add youtube_live_streams.txt
-            git commit -m "Update YouTube live streams [skip ci]" || echo "No changes to commit"
-          else
-            echo "youtube_live_streams.txt 不存在，跳過 commit"
-          fi
+          git add .
+          git commit -m "更新 YouTube 直播链接 [skip ci]" || echo "没有变化需要提交"
           git push
