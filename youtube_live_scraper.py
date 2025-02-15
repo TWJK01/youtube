@@ -16,7 +16,6 @@ channels = {
     "台灣": [
         "https://www.youtube.com/@中天電視CtiTv",
         "https://www.youtube.com/@newsebc"
-       
     ],
     "追劇": [
         "https://www.youtube.com/@gtv-drama"
