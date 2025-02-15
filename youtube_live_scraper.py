@@ -21,7 +21,7 @@ channels = {
         "https://www.youtube.com/@gtv-drama"
     ],
     "娛樂": [
-        # 如有其他娛樂頻道網址，請加入
+        "https://www.youtube.com/@新聞龍捲風NewsTornado"
     ],
     "國外": [
         # 如有其他國外頻道網址，請加入
