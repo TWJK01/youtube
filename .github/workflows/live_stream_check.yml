@@ -2,8 +2,8 @@ name: YouTube Live Stream Check
 
 on:
   schedule:
-    - cron: '0 */2 * * *'  # 每两小时执行一次
-  workflow_dispatch:  # 允许手动触发
+    - cron: '0 */2 * * *'  # Every two hours
+  workflow_dispatch:  # Allow manual triggering
 
 jobs:
   check_live_streams:
@@ -27,7 +27,7 @@ jobs:
           python live_stream_monitor.py
 
       - name: Upload live stream output
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3  # Updated to v3
         with:
           name: live_streams
           path: live_streams.txt
