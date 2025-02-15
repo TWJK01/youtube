@@ -1,115 +1,75 @@
 import os
-import time
-from googleapiclient.discovery import build
+import requests
 
-# 讀取 API 金鑰
+# 从环境变量中获取 API 密钥
 API_KEY = os.getenv('YOUTUBE_API_KEY')
 if not API_KEY:
-    raise ValueError("未讀取到 YOUTUBE_API_KEY，請設定 API 金鑰")
+    raise ValueError("未找到 YOUTUBE_API_KEY，请设置环境变量。")
 
-# 建立 YouTube API 服務物件
-youtube = build('youtube', 'v3', developerKey=API_KEY)
-
-# 設定頻道分類與對應頻道網址
-# 根據需求您可以調整分類和頻道分配：
+# 预定义的频道 URL 和分类
 channels = {
-    "台灣": [
-        "https://www.youtube.com/@中天電視CtiTv",
+    "台湾": [
+        "https://www.youtube.com/@中天电视CtiTv",
         "https://www.youtube.com/@newsebc"
     ],
-    "追劇": [
+    "追剧": [
         "https://www.youtube.com/@gtv-drama"
     ],
-    "娛樂": [
-        "https://www.youtube.com/@新聞龍捲風NewsTornado"
+    "娱乐": [
+        # 添加其他娱乐频道 URL
     ],
-    "國外": [
-        # 如有其他國外頻道網址，請加入
+    "国外": [
+        # 添加其他国外频道 URL
     ]
 }
 
-# 輸出檔案路徑：嘗試寫入桌面（若存在），否則存到當前目錄
-desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
-if os.path.isdir(desktop_path):
-    OUTPUT_FILENAME = os.path.join(desktop_path, "youtube_live_streams.txt")
-else:
-    OUTPUT_FILENAME = "youtube_live_streams.txt"
-
+# 获取频道 ID
 def get_channel_id(channel_url):
-    """
-    從頻道 URL（例如 "https://www.youtube.com/@中天電視CtiTv"）
-    解析出 "@" 後的名稱作為查詢關鍵字，返回搜尋結果中的頻道 ID。
-    """
-    try:
-        if "@" in channel_url:
-            query = channel_url.split("@")[-1].split("/")[0]
-        else:
-            query = channel_url
-        response = youtube.search().list(
-            part="snippet",
-            type="channel",
-            q=query,
-            maxResults=1
-        ).execute()
-        items = response.get("items", [])
-        if items:
-            return items[0]["id"]["channelId"]
-    except Exception as e:
-        print(f"取得頻道 ID 失敗 ({channel_url}): {e}")
+    username = channel_url.split('@')[-1]
+    search_url = f"https://www.googleapis.com/youtube/v3/search?part=id&q={username}&type=channel&key={API_KEY}"
+    response = requests.get(search_url).json()
+    items = response.get('items')
+    if items:
+        return items[0]['id']['channelId']
     return None
 
-def get_live_video(channel_id):
-    """
-    查詢指定頻道是否有正在直播的影片。
-    如果有，返回格式： "直播標題, https://www.youtube.com/watch?v=video_id"；否則返回 None。
-    """
-    try:
-        response = youtube.search().list(
-            part="snippet",
-            channelId=channel_id,
-            eventType="live",  # 只抓取正在直播的影片
-            type="video",
-            maxResults=1
-        ).execute()
-        items = response.get("items", [])
-        if items:
-            item = items[0]
-            video_id = item["id"]["videoId"]
-            title = item["snippet"]["title"]
-            return f"{title}, https://www.youtube.com/watch?v={video_id}"
-    except Exception as e:
-        print(f"取得直播資訊失敗 ({channel_id}): {e}")
-    return None
+# 获取直播视频
+def get_live_videos(channel_id):
+    search_url = f"https://www.googleapis.com/youtube/v3/search?part=snippet&channelId={channel_id}&eventType=live&type=video&key={API_KEY}"
+    response = requests.get(search_url).json()
+    items = response.get('items')
+    live_videos = []
+    if items:
+        for item in items:
+            title = item['snippet']['title']
+            video_id = item['id']['videoId']
+            video_url = f"https://www.youtube.com/watch?v={video_id}"
+            live_videos.append(f"{title}, {video_url}")
+    return live_videos
 
-def update_live_streams():
-    """
-    遍歷各分類的頻道網址，查詢是否有直播影片，
-    只保留有直播的頻道，並將結果輸出成文字檔。
-    """
+# 主函数
+def main():
     results = {}
-    for category, url_list in channels.items():
-        category_results = []
-        for url in url_list:
+    for category, urls in channels.items():
+        live_streams = []
+        for url in urls:
             channel_id = get_channel_id(url)
             if channel_id:
-                live_video = get_live_video(channel_id)
-                if live_video:
-                    category_results.append(live_video)
-        if category_results:
-            results[category] = category_results
+                live_videos = get_live_videos(channel_id)
+                live_streams.extend(live_videos)
+        if live_streams:
+            results[category] = live_streams
 
-    try:
-        with open(OUTPUT_FILENAME, "w", encoding="utf-8") as f:
-            f.write(f"更新時間：{time.strftime('%Y-%m-%d %H:%M:%S')}\n")
-            f.write("=" * 50 + "\n\n")
-            for category, videos in results.items():
-                f.write(f"【{category}】\n")
-                for video in videos:
-                    f.write(video + "\n")
-                f.write("\n")
-        print(f"直播連結更新完成，結果已寫入 {OUTPUT_FILENAME}")
-    except Exception as e:
-        print(f"寫入檔案失敗: {e}")
+    # 将结果写入桌面上的文本文件
+    desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+    output_file = os.path.join(desktop_path, "youtube_live_streams.txt")
+    with open(output_file, "w", encoding="utf-8") as f:
+        for category, streams in results.items():
+            f.write(f"\n")
+            for stream in streams:
+                f.write(f"{stream}\n")
+            f.write("\n")
+    print(f"直播链接已保存到 {output_file}")
 
-if __name__ == '__main__':
-    update_live_streams()
+if __name__ == "__main__":
+    main()
