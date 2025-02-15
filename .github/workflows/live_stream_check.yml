@@ -1,0 +1,33 @@
+name: YouTube Live Stream Check
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'  # 每两小时执行一次
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  check_live_streams:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install google-api-python-client
+
+      - name: Run the Python script
+        run: |
+          python live_stream_monitor.py
+
+      - name: Upload live stream output
+        uses: actions/upload-artifact@v2
+        with:
+          name: live_streams
+          path: live_streams.txt
