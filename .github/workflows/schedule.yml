@@ -27,18 +27,21 @@ jobs:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: python youtube_live_scraper.py
 
-      - name: Commit and Push updates
+      - name: Commit and Push updates with stash
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          # 使用 PAT_TOKEN 更新遠端 URL
+          # 設定遠端 URL 使用 PAT_TOKEN
           git remote set-url origin https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git
-          # 拉取最新遠端更新，並以 rebase 方式整合本地更改
+          # 將未提交變更暫存起來
+          git stash
+          # 從遠端拉取最新更新，並以 rebase 整合本地更改
           git pull --rebase origin main
+          # 恢復暫存的變更
+          git stash pop || true
           git add live_streams.txt
           git commit -m "Update YouTube live streams [skip ci]" || echo "No changes to commit"
-          git pull --rebase origin main
-      - name: Pull latest changes
-        run: git pull --rebase origin main
+          git push
+
