@@ -11,7 +11,8 @@ categories = {
         "https://www.youtube.com/@tvbschannel/streams"
     ],
     "電影綜藝": [
-        "https://www.youtube.com/@chopchopshow/streams"
+        "https://www.youtube.com/@chopchopshow/streams",
+        "https://www.youtube.com/@momokidsYT/streams"
     ]
 }
 
