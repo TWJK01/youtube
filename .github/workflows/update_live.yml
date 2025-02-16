@@ -29,14 +29,10 @@ jobs:
       - name: Run live stream script
         run: python your_script.py
 
-      - name: 提交更新
+      - name: Commit and push changes
         run: |
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
-          git reset --hard HEAD
-          git pull --rebase
-          git add live_streams.txt
-          git commit -m "更新直播列表" || echo "无更新内容"
-          git push --force-with-lease
-
-
+          git add output.txt
+          git commit -m "Update live streams" || echo "No changes to commit"
+          git push
