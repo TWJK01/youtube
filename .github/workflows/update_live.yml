@@ -33,7 +33,8 @@ jobs:
         run: |
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
-          git pull --rebase  # 拉取最新的远程更改
+          git reset --hard HEAD
+          git pull --rebase
           git add live_streams.txt
           git commit -m "更新直播列表" || echo "无更新内容"
           git push --force-with-lease
