@@ -3,59 +3,53 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 
-# 定義分類與對應的 YouTube streams 網址（依分類標籤 #genre# 分隔）
-categories = {
-    "台灣": [
-        "https://www.youtube.com/@中天新聞CtiNews/streams",
-        "https://www.youtube.com/@tvbschannel/streams"
-    ],
-    "電影綜藝": [
-        "https://www.youtube.com/@chopchopshow/streams"
-    ]
-}
+# 要抓取的 YouTube streams 頁面網址列表
+urls = [
+    "https://www.youtube.com/@中天新聞CtiNews/streams",
+    "https://www.youtube.com/@tvbschannel/streams"
+]
 
-# 存放所有抓到的直播影片，格式為 (影片名稱, 影片網址)
+# 存放抓到的直播影片 (格式：(標題, 影片網址))
 live_streams = []
 
-# 設定 Chrome 無頭模式
+# 設定無頭 Chrome 選項
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 
-# 初始化 Chrome WebDriver（請確保 GitHub Actions Runner 上已安裝 Chrome 與 chromedriver）
+# 初始化 Chrome WebDriver
 driver = webdriver.Chrome(options=chrome_options)
 
-# 逐一處理各分類網址
-for genre, url_list in categories.items():
-    for url in url_list:
-        driver.get(url)
-        # 等待網頁載入，視網速調整等待秒數
-        time.sleep(5)
-        html = driver.page_source
-        soup = BeautifulSoup(html, "html.parser")
-        
-        # 搜尋所有 <span> 標籤，檢查是否包含 "LIVE" 或 "正在直播"
-        spans = soup.find_all("span")
-        for span in spans:
-            text = span.get_text(strip=True)
-            if "LIVE" in text.upper() or "正在直播" in text:
-                # 往上找包含影片連結的 <a> 標籤
-                parent_anchor = span.find_parent("a")
-                if parent_anchor and parent_anchor.has_attr("href"):
-                    video_url = parent_anchor["href"]
-                    # 若連結非完整網址，補上前綴
-                    if not video_url.startswith("https://www.youtube.com"):
-                        video_url = "https://www.youtube.com" + video_url
-                    # 優先從 title 屬性取得影片名稱，若無則從連結文字補足
-                    title = parent_anchor.get("title") or parent_anchor.get_text(strip=True) or "No Title"
-                    # 為避免重複加入，先檢查清單中是否已存在此項目
-                    if (title, video_url) not in live_streams:
-                        live_streams.append((title, video_url))
+# 依序處理每個頻道頁面
+for url in urls:
+    driver.get(url)
+    # 等待網頁載入，根據網速可調整秒數
+    time.sleep(5)
+    html = driver.page_source
+    soup = BeautifulSoup(html, "html.parser")
+    
+    # 解析頁面中所有 <span> 標籤，尋找包含 "LIVE" 或 "正在直播" 的文字
+    spans = soup.find_all("span")
+    for span in spans:
+        text = span.get_text(strip=True)
+        if "LIVE" in text.upper() or "正在直播" in text:
+            # 往上查找包含影片連結的 <a> 標籤
+            parent_anchor = span.find_parent("a")
+            if parent_anchor and parent_anchor.has_attr("href"):
+                video_url = parent_anchor["href"]
+                if not video_url.startswith("https://www.youtube.com"):
+                    video_url = "https://www.youtube.com" + video_url
+                # 嘗試從 title 屬性取得影片名稱，若無則以連結內文字補充
+                title = parent_anchor.get("title") or parent_anchor.get_text(strip=True) or "No Title"
+                live_streams.append((title, video_url))
 
 driver.quit()
 
-# 排除重複後，將結果輸出至文字檔，每行格式：名稱,網址
+# 排除重複項目
+live_streams = list(set(live_streams))
+
+# 輸出結果至文字檔 (每行格式：名稱,網址)
 with open("output.txt", "w", encoding="utf-8") as f:
     for title, video_url in live_streams:
         f.write(f"{title},{video_url}\n")
