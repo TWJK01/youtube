@@ -1,7 +1,7 @@
 import os
 from googleapiclient.discovery import build
 
-# 從環境變數中取得 API 金鑰（建議在 GitHub Secrets 中設定）
+# 從環境變數取得 API 金鑰（請於 GitHub Secrets 中設定 YOUTUBE_API_KEY）
 api_key = os.getenv('YOUTUBE_API_KEY')
 if not api_key:
     raise Exception("請設定 YOUTUBE_API_KEY 環境變數。")
@@ -9,8 +9,8 @@ if not api_key:
 # 建立 YouTube API 客戶端
 youtube = build('youtube', 'v3', developerKey=api_key)
 
-# 頻道資訊設定：包含名稱、頻道網址（使用 handle 格式）與分類
-# 請根據實際需求設定分類項目：例如「台灣」、「娛樂」、「追劇」、「國外」
+# 設定頻道資料：名稱、頻道網址（以 handle 表示）、以及分類
+# 根據您的需求，請將每個頻道歸類到【台灣】【娛樂】【追劇】【國外】其中一個分類
 channels = [
     {"name": "GTV Drama", "url": "https://www.youtube.com/@gtv-drama", "category": "追劇"},
     {"name": "中天電視CtiTv", "url": "https://www.youtube.com/@%E4%B8%AD%E5%A4%A9%E9%9B%BB%E8%A6%96CtiTv", "category": "娛樂"},
@@ -20,7 +20,7 @@ channels = [
 def get_channel_id_from_url(url):
     """
     根據頻道網址 (格式如 https://www.youtube.com/@xxx) 取得頻道 ID
-    由於 YouTube API 沒有直接透過 handle 查詢頻道 ID，故採用搜尋方式
+    由於 YouTube API 沒有直接用 handle 查詢頻道 ID，故採用搜尋方式
     """
     handle = url.rstrip('/').split('/')[-1]
     try:
@@ -35,7 +35,7 @@ def get_channel_id_from_url(url):
         if items:
             return items[0]["id"]["channelId"]
     except Exception as e:
-        print(f"取得頻道 ID 失敗: {e}")
+        print(f"取得頻道 ID 失敗：{e}")
     return None
 
 def is_live(channel_id):
@@ -53,22 +53,22 @@ def is_live(channel_id):
         response = request.execute()
         return len(response.get('items', [])) > 0
     except Exception as e:
-        print(f"檢查直播狀態失敗 (頻道ID: {channel_id}): {e}")
+        print(f"檢查直播狀態失敗 (頻道ID: {channel_id})：{e}")
         return False
 
 def update_live_streams():
     """
-    檢查所有頻道是否有直播，依分類整理輸出成文字檔
+    檢查所有頻道是否有正在直播，依分類整理並輸出成文字檔
     輸出格式：
-      分類區塊（例如：台灣、娛樂、追劇、國外）
-      每個區塊內以「名稱,網址」格式列出正在直播的頻道
-      若無直播則該分類不列入結果
+      每個分類區塊先顯示分類名稱，
+      接著每行輸出「名稱,網址」
+      沒有直播的頻道不加入結果
     """
-    results = {}  # key 為分類，value 為該分類下正在直播的項目
+    results = {}  # key 為分類，value 為該分類下的直播項目
     for channel in channels:
         channel_id = get_channel_id_from_url(channel["url"])
         if not channel_id:
-            print(f"無法取得 {channel['name']} 的頻道 ID，跳過。")
+            print(f"無法取得 {channel['name']} 的頻道ID，跳過。")
             continue
         if is_live(channel_id):
             cat = channel["category"]
@@ -76,9 +76,9 @@ def update_live_streams():
     
     # 組合輸出內容
     lines = []
-    for cat, entries in results.items():
-        lines.append(cat)  # 輸出分類名稱
-        lines.extend(entries)
+    for cat, items in results.items():
+        lines.append(cat)
+        lines.extend(items)
         lines.append("")  # 空行分隔不同分類
     
     file_content = "\n".join(lines)
