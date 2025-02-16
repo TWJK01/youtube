@@ -2,7 +2,7 @@ name: Update YouTube Live Streams
 
 on:
   schedule:
-    - cron: "0 */2 * * *"  # 每兩小時執行一次
+    - cron: "0 */2 * * *"  # 每兩小時觸發一次
 
 jobs:
   update_streams:
@@ -19,9 +19,9 @@ jobs:
       - name: Install dependencies
         run: |
           pip install selenium beautifulsoup4
-          # 安裝 Chrome Driver (Ubuntu 上可以用 apt 安裝)
+          # 安裝 Chrome 和 chromedriver（Ubuntu 環境下）
           sudo apt-get update
-          sudo apt-get install -y chromium-chromedriver
+          sudo apt-get install -y chromium-chromedriver chromium-browser
           sudo ln -sf /usr/lib/chromium-browser/chromedriver /usr/bin/chromedriver
 
       - name: Run live stream script
