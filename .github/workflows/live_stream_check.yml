@@ -28,9 +28,8 @@ jobs:
         run: |
           python live_stream_monitor.py
 
-      - name: Upload live_streams.txt artifact
+      - name: Upload live_streams.txt Artifact
         uses: actions/upload-artifact@v4
         with:
           name: live_streams
           path: live_streams.txt
- 
