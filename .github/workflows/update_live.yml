@@ -1,0 +1,38 @@
+name: Update YouTube Live Streams
+
+on:
+  schedule:
+    - cron: "0 */2 * * *"  # 每兩小時執行一次
+  workflow_dispatch:  # 允許手動觸發
+
+jobs:
+  update_streams:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: |
+          pip install selenium beautifulsoup4
+          # 安裝 Chromium 與 chromedriver（Ubuntu 環境下）
+          sudo apt-get update
+          sudo apt-get install -y chromium-chromedriver chromium-browser
+          # 避免 symlink 重複錯誤（若已存在則忽略）
+          sudo ln -sf /usr/lib/chromium-browser/chromedriver /usr/bin/chromedriver || true
+
+      - name: Run live stream script
+        run: python your_script.py
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          git add output.txt
+          git commit -m "Update live streams" || echo "No changes to commit"
+          git push
