@@ -3,6 +3,7 @@ name: Update YouTube Live Streams
 on:
   schedule:
     - cron: "0 */2 * * *"  # 每兩小時執行一次
+  workflow_dispatch:  # 允許手動觸發測試
 
 jobs:
   update_streams:
