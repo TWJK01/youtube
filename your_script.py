@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 categories = {
     "台灣": [
         "https://www.youtube.com/@中天新聞CtiNews/streams",
+        "https://www.youtube.com/@setnews/streams",
         "https://www.youtube.com/@tvbschannel/streams"
     ],
     "電影綜藝": [
