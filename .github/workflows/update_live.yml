@@ -1,35 +1,37 @@
-name: Update Live Streams
+name: Update YouTube Live Streams
 
 on:
   schedule:
-    - cron: '0 */2 * * *'  # 每两小时执行一次
-  workflow_dispatch:  # 允许手动触发
+    - cron: "0 */2 * * *"  # 每兩小時執行一次
+  workflow_dispatch:  # 允許手動觸發測試
 
 jobs:
-  update:
+  update_streams:
     runs-on: ubuntu-latest
-
     steps:
-      - name: 检出仓库
+      - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: 设置 Python
+      - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.x'
+          python-version: "3.x"
 
-      - name: 安装依赖
+      - name: Install dependencies
         run: |
-          pip install requests beautifulsoup4
+          pip install selenium beautifulsoup4
+          # 安裝 Chromium 與 chromedriver（Ubuntu 環境下）
+          sudo apt-get update
+          sudo apt-get install -y chromium-chromedriver chromium-browser
+          sudo ln -sf /usr/lib/chromium-browser/chromedriver /usr/bin/chromedriver
 
-      - name: 执行抓取脚本
+      - name: Run live stream script
         run: python your_script.py
 
-      - name: 提交更新
+      - name: Commit and push changes
         run: |
-          git config --global user.email "you@example.com"
-          git config --global user.name "Your Name"
-          git pull --rebase  # 拉取最新的远程更改
-          git add live_streams.txt
-          git commit -m "更新直播列表" || echo "无更新内容"
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          git add output.txt
+          git commit -m "Update live streams" || echo "No changes to commit"
           git push
