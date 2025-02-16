@@ -3,6 +3,7 @@ name: Update YouTube Live Streams
 on:
   schedule:
     - cron: "0 */2 * * *"  # 每兩小時執行一次
+  workflow_dispatch:  # 允許手動觸發
 
 jobs:
   update_streams:
@@ -22,7 +23,8 @@ jobs:
           # 安裝 Chromium 與 chromedriver（Ubuntu 環境下）
           sudo apt-get update
           sudo apt-get install -y chromium-chromedriver chromium-browser
-          sudo ln -sf /usr/lib/chromium-browser/chromedriver /usr/bin/chromedriver
+          # 避免 symlink 重複錯誤（若已存在則忽略）
+          sudo ln -sf /usr/lib/chromium-browser/chromedriver /usr/bin/chromedriver || true
 
       - name: Run live stream script
         run: python your_script.py
