@@ -36,10 +36,10 @@ jobs:
           git reset --hard HEAD
           git pull --rebase
           if [ -f live_streams.txt ]; then
-          git add live_streams.txt
-          git commit -m "更新直播列表" || echo "无更新内容"
-          git push --force-with-lease
-       else
-        echo "live_streams.txt 文件不存在，跳过提交。"
-    fi
+              git add live_streams.txt
+              git commit -m "更新直播列表" || echo "无更新内容"
+              git push --force-with-lease
+          else
+              echo "live_streams.txt 文件不存在，跳过提交。"
+          fi
 
