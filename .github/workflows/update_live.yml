@@ -31,11 +31,11 @@ jobs:
 
       - name: Commit and push changes
         run: |
-    git config --global user.email "action@github.com"
-    git config --global user.name "GitHub Action"
-    git reset --hard HEAD
-    git pull --rebase
-    git add live_streams.txt
-    git commit -m "更新直播列表" || echo "无更新内容"
-    git push --force-with-lease
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          git reset --hard HEAD
+          git pull --rebase
+          git add live_streams.txt
+          git commit -m "更新直播列表" || echo "无更新内容"
+          git push --force-with-lease
 
