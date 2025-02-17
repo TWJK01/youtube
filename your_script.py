@@ -10,6 +10,7 @@ categories = {
         "https://www.youtube.com/@setnews/streams",
         "https://www.youtube.com/@tvbschannel/streams",
         "https://www.youtube.com/@chopchopshow/streams",
+        "https://www.youtube.com/@gtv-drama/streams",
         "https://www.youtube.com/@momokidsYT/streams"
     ],
     "電影綜藝": [
